@@ -1,0 +1,103 @@
+@model IEnumerable<SistemaPastelaria.Controllers.FinanceiroViewModel>
+
+@{
+    ViewData["Title"] = "Fechamento e Caixa - Financeiro";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm mb-4">
+        <div>
+            <h3 class="text-danger fw-bold m-0">💰 Gestão Financeira & Caixa</h3>
+            <small class="text-muted">Controle de Sangrias, Suprimentos e Fechamento de Turno</small>
+        </div>
+        <div>
+            <a href="/Home/Index" class="btn btn-outline-secondary btn-sm">Voltar ao Painel</a>
+        </div>
+    </div>
+
+    @if (TempData["Erro"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Erro"]</div>
+    }
+
+    <!-- Cards de Resumo -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-3 bg-light">
+                <span class="text-muted small fw-bold text-uppercase">Total de Sangrias (Retiradas)</span>
+                <h3 class="text-danger fw-bold mt-1 mb-0">R$ @(((decimal)(ViewBag.TotalSangrias ?? 0)).ToString("N2"))</h3>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-3 bg-light">
+                <span class="text-muted small fw-bold text-uppercase">Total de Suprimentos (Entradas)</span>
+                <h3 class="text-success fw-bold mt-1 mb-0">R$ @(((decimal)(ViewBag.TotalSuprimentos ?? 0)).ToString("N2"))</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulário para Nova Movimentação -->
+    <div class="card shadow-sm border-0 p-4 mb-4 bg-white">
+        <h5 class="fw-bold text-dark mb-3">Registrar Movimentação de Caixa</h5>
+        <form asp-action="RegistrarMovimentacao" method="post" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Tipo</label>
+                <select name="tipo" class="form-select" required>
+                    <option value="Sangria">Sangria (Retirada)</option>
+                    <option value="Suprimento">Suprimento (Entrada)</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Valor (R$)</label>
+                <input type="number" step="0.01" name="valor" class="form-control" placeholder="0.00" required />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Motivo / Observação</label>
+                <input type="text" name="observacao" class="form-control" placeholder="Ex: Pagamento de Gás / Troco inicial" required />
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-danger w-100 fw-bold">Registrar</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabela de Histórico -->
+    <div class="card shadow-sm border-0 p-3">
+        <h5 class="fw-bold text-dark mb-3">Histórico de Movimentações</h5>
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Operário</th>
+                    <th>Tipo</th>
+                    <th>Valor</th>
+                    <th>Observação</th>
+                    <th>Horário</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        string badgeColor = item.Tipo == "Sangria" ? "bg-danger" : "bg-success";
+                        <tr>
+                            <td>#@item.IdMovimentacao</td>
+                            <td class="fw-semibold">@item.NomeOperario</td>
+                            <td><span class="badge @badgeColor">@item.Tipo</span></td>
+                            <td class="fw-bold">R$ @item.Valor.ToString("N2")</td>
+                            <td>@item.Observacao</td>
+                            <td>@item.DataMovimento.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">Nenhuma movimentação registrada no turno.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

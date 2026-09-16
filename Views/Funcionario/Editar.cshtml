@@ -1,0 +1,59 @@
+@model SistemaPastelaria.Models.Operario
+@{
+    ViewData["Title"] = "Editar Funcionário";
+}
+
+<div class="container mt-5" style="max-width: 600px;">
+    <div class="card shadow-sm border-0 p-4 rounded-4">
+        <h3 class="fw-bold text-primary mb-3 text-center">✏️ Editar Funcionário</h3>
+
+        @if (TempData["Erro"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Erro"]</div>
+        }
+
+        <form asp-action="Editar" method="post">
+            <input type="hidden" name="IdOperario" value="@Model.IdOperario" />
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nome Completo</label>
+                <input type="text" name="Nome" class="form-control" value="@Model.Nome" required />
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Cargo</label>
+                    <input type="text" name="Cargo" class="form-control" value="@Model.Cargo" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">PIN de Acesso</label>
+                    <input type="text" name="Pin" class="form-control" maxlength="4" value="@Model.Pin" required />
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Nível de Acesso</label>
+                    <select name="NivelAcesso" class="form-select" required>
+                        <option value="1" selected="@(Model.NivelAcesso == 1)">Nível 1 - Atendente</option>
+                        <option value="2" selected="@(Model.NivelAcesso == 2)">Nível 2 - Cozinha</option>
+                        <option value="3" selected="@(Model.NivelAcesso == 3)">Nível 3 - Gerente</option>
+                        <option value="4" selected="@(Model.NivelAcesso == 4)">Nível 4 - Admin</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Status</label>
+                    <select name="Ativo" class="form-select" required>
+                        <option value="true" selected="@(Model.Ativo == true)">Ativo</option>
+                        <option value="false" selected="@(Model.Ativo == false)">Inativo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary fw-bold py-2">Salvar Alterações</button>
+                <a href="/Funcionario/Index" class="btn btn-outline-secondary py-2">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>

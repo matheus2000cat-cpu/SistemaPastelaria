@@ -1,0 +1,103 @@
+@model IEnumerable<SistemaPastelaria.Models.Pedido>
+
+@{
+    ViewData["Title"] = "KDS - Cozinha";
+}
+
+<div class="container-fluid mt-3">
+    <div class="row mb-3">
+        <div class="col-12 d-flex justify-content-between align-items-center bg-dark text-white p-3 rounded shadow-sm">
+            <h3 class="fw-bold m-0">🍳 KDS - Painel da Cozinha</h3>
+            <div>
+                <span class="me-3">Cozinheiro: <strong>@ViewBag.NomeOperario</strong></span>
+                <a href="/Home/Index" class="btn btn-outline-light btn-sm">Voltar ao Painel</a>
+            </div>
+        </div>
+    </div>
+
+    @if (ViewBag.Erro != null)
+    {
+        <div class="alert alert-danger">@ViewBag.Erro</div>
+    }
+
+    <div class="row g-3" id="gradePedidos">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var pedido in Model)
+            {
+                string corBadge = pedido.Status == "Pendente" ? "bg-secondary" : (pedido.Status == "Em Preparo" ? "bg-warning text-dark" : "bg-success");
+                
+                <div class="col-md-4" id="card-pedido-@pedido.IdPedido">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                            <h5 class="fw-bold m-0 text-danger">#@pedido.IdPedido - @pedido.TipoAtendimento</h5>
+                            <span class="badge @corBadge fs-6 px-3 py-1">@pedido.Status</span>
+                        </div>
+                        <div class="card-body bg-light">
+                            <p class="text-muted small mb-2">Horário: @pedido.DataCriacao.ToString("HH:mm:ss")</p>
+                            <hr class="my-2" />
+                            <div class="mb-3">
+                                <span class="fw-semibold text-dark">Forma de Pagamento:</span> @pedido.FormaPagamento
+                            </div>
+                            <div class="mb-3">
+                                <span class="fw-semibold text-dark">Valor Total:</span> R$ @pedido.ValorTotal.ToString("N2")
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white p-3 d-flex gap-2">
+                            @if (pedido.Status == "Pendente")
+                            {
+                                <button class="btn btn-warning w-100 fw-bold py-2" onclick="mudarStatus(@pedido.IdPedido, 'Em Preparo')">
+                                    👨‍🍳 Iniciar Preparo
+                                </button>
+                            }
+                            else if (pedido.Status == "Em Preparo")
+                            {
+                                <button class="btn btn-success w-100 fw-bold py-2 text-white" onclick="mudarStatus(@pedido.IdPedido, 'Pronto')">
+                                    🔔 Pronto para Entrega
+                                </button>
+                            }
+                            else if (pedido.Status == "Pronto")
+                            {
+                                <button class="btn btn-outline-secondary w-100 fw-bold py-2" onclick="mudarStatus(@pedido.IdPedido, 'Concluído')">
+                                    ✅ Concluir / Arquivar
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <h4 class="text-muted">Nenhum pedido pendente na cozinha no momento! 🎯</h4>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    async function mudarStatus(idPedido, novoStatus) {
+        try {
+            let response = await fetch('/Cozinha/AtualizarStatus', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idPedido: idPedido, novoStatus: novoStatus })
+            });
+
+            let resultado = await response.json();
+            if (resultado.sucesso) {
+                location.reload();
+            } else {
+                alert("Erro ao atualizar: " + resultado.mensagem);
+            }
+        } catch (error) {
+            alert("Erro de comunicação com o servidor.");
+        }
+    }
+
+    // Auto-refresh a cada 10 segundos
+    setTimeout(() => {
+        location.reload();
+    }, 10000);
+</script>

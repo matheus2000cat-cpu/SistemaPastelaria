@@ -1,0 +1,155 @@
+﻿@{
+    ViewData["Title"] = "Painel Principal - Pastelaria";
+    int nivelAcesso = ViewBag.NivelAcesso ?? 1;
+    decimal vendasHoje = ViewBag.VendasHoje ?? 0;
+    int pedidosAtivos = ViewBag.PedidosAtivos ?? 0;
+    int pedidosPendentes = ViewBag.PedidosPendentes ?? 0;
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background-color: #f4f6f9;
+        }
+        .app-container {
+            max-width: 480px;
+            margin: 30px auto;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border: 1px solid #eaeaea;
+        }
+        .app-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .app-body {
+            padding: 24px;
+        }
+        .card-metric {
+            background: #ffffff;
+            border: 1px solid #f0f0f0;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            transition: transform 0.2s;
+        }
+        .card-metric:hover {
+            transform: translateY(-2px);
+        }
+        .btn-pastelaria {
+            background-color: #dc3545;
+            color: white;
+            border-radius: 14px;
+            font-weight: 600;
+            padding: 12px;
+            border: none;
+            transition: background-color 0.2s;
+        }
+        .btn-pastelaria:hover {
+            background-color: #bb2d3b;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Cabeçalho estilo App -->
+        <div class="app-header">
+            <div class="d-flex align-items-center gap-2">
+                <span style="font-size: 24px;">🥟</span>
+                <h5 class="m-0 fw-bold text-danger">Pastelaria</h5>
+            </div>
+            <div class="dropdown">
+                <span class="text-muted small">👤 <strong>@ViewBag.NomeOperario</strong></span>
+            </div>
+        </div>
+
+        <!-- Conteúdo do Painel -->
+        <div class="app-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold text-dark m-0">Dashboard</h4>
+                <span class="badge bg-light text-muted border">Nível @nivelAcesso</span>
+            </div>
+
+            <!-- Bloco de Métricas / Vendas Hoje (Real do Banco) -->
+            <div class="card-metric mb-3">
+                <span class="text-muted small text-uppercase fw-semibold">Vendas Hoje</span>
+                <h3 class="fw-bold text-success mt-1 mb-0">R$ @vendasHoje.ToString("N2")</h3>
+                <small class="text-muted" style="font-size: 11px;">Calculado em tempo real</small>
+            </div>
+
+            <!-- Bloco de Pedidos Ativos (Real do Banco) -->
+            <div class="card-metric mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-semibold">Pedidos no Turno</span>
+                        <h4 class="fw-bold text-dark mt-1 mb-0">@pedidosAtivos Ativos</h4>
+                    </div>
+                    <span class="badge bg-warning text-dark px-2 py-1">@pedidosPendentes Pendentes</span>
+                </div>
+            </div>
+
+            <!-- Botões de Ação Rápida (Condicionais por Nível) -->
+            <div class="d-grid gap-2 mb-3">
+                <a href="/Caixa/Index" class="btn btn-pastelaria text-center text-decoration-none">
+                    ⚡ Abrir Frente de Caixa (PDV)
+                </a>
+
+                <a href="/Cozinha/Index" class="btn btn-dark text-center text-decoration-none rounded-pill py-2 fw-semibold">
+                    🍳 Abrir KDS (Cozinha)
+                </a>
+
+                <a href="/Cardapio/Index" class="btn btn-outline-danger rounded-pill py-2 fw-semibold border-2">
+                    📋 Ver Cardápio
+                </a>
+
+                @if (nivelAcesso >= 2)
+                {
+                    <a href="/Cardapio/Cadastrar" class="btn btn-outline-dark rounded-pill py-2 fw-semibold border-2">
+                        Gerenciar Produtos (Gerência)
+                    </a>
+                }
+
+                @if (nivelAcesso >= 3)
+                {
+                    <a href="/Financeiro/Index" class="btn btn-outline-success rounded-pill py-2 fw-semibold border-2">
+                        💵 Fechamento de Caixa (Financeiro)
+                    </a>
+                }
+
+                @if (nivelAcesso >= 4)
+                {
+                    <a href="/Funcionario/Index" class="btn btn-outline-primary rounded-pill py-2 fw-semibold border-2">
+                        👥 Gerenciar Funcionários (Admin)
+                    </a>
+
+                    <a href="/Ponto/Index" class="btn btn-outline-warning text-dark rounded-pill py-2 fw-semibold border-2">
+                        ⏱️ Auditoria de Ponto (Turnos)
+                    </a>
+                }
+            </div>
+
+            <!-- Botão de Sair -->
+            <div class="text-center mt-4">
+                <a href="/Auth/Login" class="text-danger small text-decoration-none fw-semibold">
+                    🔒 Encerrar Turno (Sair)
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+@model IEnumerable<SistemaPastelaria.Controllers.PontoViewModel>
+
+@{
+    ViewData["Title"] = "Relatório de Ponto / Turnos";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm mb-4">
+        <div>
+            <h3 class="text-danger fw-bold m-0">⏱️ Relatório de Ponto & Turnos</h3>
+            <small class="text-muted">Auditoria exclusiva de horários do Administrador</small>
+        </div>
+        <div>
+            <a href="/Home/Index" class="btn btn-outline-secondary btn-sm">Voltar ao Painel</a>
+        </div>
+    </div>
+
+    @if (ViewBag.Erro != null)
+    {
+        <div class="alert alert-danger">@ViewBag.Erro</div>
+    }
+
+    <div class="card shadow-sm border-0 p-3">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Funcionário</th>
+                    <th>Cargo</th>
+                    <th>Entrada</th>
+                    <th>Saída</th>
+                    <th>Status do Turno</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>#@item.IdRegistro</td>
+                            <td class="fw-bold">@item.NomeOperario</td>
+                            <td>@item.Cargo</td>
+                            <td>@item.DataEntrada.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                            <td>
+                                @if (item.DataSaida != null)
+                                {
+                                    @item.DataSaida.Value.ToString("dd/MM/yyyy HH:mm:ss")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.DataSaida == null)
+                                {
+                                    <span class="badge bg-success">Em Turno (Ativo)</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Encerrado</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">Nenhum registro de ponto encontrado.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

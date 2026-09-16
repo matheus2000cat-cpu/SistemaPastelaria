@@ -1,0 +1,48 @@
+@model SistemaPastelaria.Models.Operario
+@{
+    ViewData["Title"] = "Cadastrar Funcionário";
+}
+
+<div class="container mt-5" style="max-width: 600px;">
+    <div class="card shadow-sm border-0 p-4 rounded-4">
+        <h3 class="fw-bold text-danger mb-3 text-center">➕ Novo Funcionário</h3>
+
+        @if (TempData["Erro"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Erro"]</div>
+        }
+
+        <form asp-action="Cadastrar" method="post">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nome Completo</label>
+                <input type="text" name="Nome" class="form-control" required />
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Cargo</label>
+                    <input type="text" name="Cargo" class="form-control" placeholder="Ex: Atendente" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">PIN de Acesso (4 dígitos)</label>
+                    <input type="text" name="Pin" class="form-control" maxlength="4" placeholder="Ex: 1234" required />
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Nível de Acesso</label>
+                <select name="NivelAcesso" class="form-select" required>
+                    <option value="1">Nível 1 - Atendente (PDV)</option>
+                    <option value="2">Nível 2 - Cozinha / Cardápio</option>
+                    <option value="3">Nível 3 - Gerente (Financeiro)</option>
+                    <option value="4">Nível 4 - Administrador / Dono</option>
+                </select>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-danger fw-bold py-2">Salvar Funcionário</button>
+                <a href="/Funcionario/Index" class="btn btn-outline-secondary py-2">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>

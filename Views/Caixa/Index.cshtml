@@ -1,0 +1,242 @@
+@model IEnumerable<SistemaPastelaria.Models.Produto>
+
+@{
+    ViewData["Title"] = "Frente de Caixa (PDV) - Pastelaria";
+    int nivelAcesso = Context.Session.GetInt32("NivelAcesso") ?? 1;
+    string nomeOperario = Context.Session.GetString("NomeOperario") ?? "Operário";
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body { background-color: #f4f6f9; }
+        .pdv-container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+        .card-produto { transition: transform 0.2s; border: 1px solid #eaeaea; border-radius: 12px; }
+        .card-produto:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+    <div class="pdv-container">
+        <!-- Cabeçalho PDV -->
+        <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded-4 shadow-sm mb-4">
+            <div class="d-flex align-items-center gap-2">
+                <span style="font-size: 28px;">⚡</span>
+                <div>
+                    <h4 class="fw-bold text-danger m-0">Frente de Caixa (PDV)</h4>
+                    <small class="text-muted">Operador: <strong>@nomeOperario</strong> (Nível @nivelAcesso)</small>
+                </div>
+            </div>
+            <div>
+                <a href="/Home/Index" class="btn btn-outline-secondary btn-sm rounded-pill px-3">Voltar ao Painel</a>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Coluna de Produtos -->
+            <div class="col-md-7">
+                <div class="card border-0 shadow-sm p-3 rounded-4 bg-white mb-4">
+                    <h5 class="fw-bold text-dark mb-3">Selecione os Produtos</h5>
+                    <div class="row g-3" style="max-height: 70vh; overflow-y: auto;">
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var p in Model)
+                            {
+                                <div class="col-md-6">
+                                    <div class="card card-produto p-3 h-100 bg-white">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-1">@p.Nome</h6>
+                                                <span class="text-muted small">@p.Categoria</span>
+                                            </div>
+                                            <span class="badge bg-light text-success border fw-bold fs-6">R$ @p.Preco.ToString("N2")</span>
+                                        </div>
+                                        <div class="mt-auto pt-2 d-flex gap-2">
+                                            <button type="button" class="btn btn-danger btn-sm w-100 fw-semibold rounded-pill" 
+                                                    onclick="adicionarAoCarrinho(@p.IdProduto, '@p.Nome', @p.Preco.ToString(System.Globalization.CultureInfo.InvariantCulture))">
+                                                ＋ Adicionar
+                                            </button>
+                                        </div>
+
+                                        <!-- Botão de Excluir visível apenas para o Dono (Nível 4) -->
+                                        @if (nivelAcesso >= 4)
+                                        {
+                                            <form asp-controller="Cardapio" asp-action="Excluir" method="post" onsubmit="return confirm('Deseja excluir @p.Nome do cardápio?');" class="mt-2">
+                                                <input type="hidden" name="id" value="@p.IdProduto" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm w-100 py-0" style="font-size: 11px;">🗑️ Excluir Item</button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="col-12 text-center py-4 text-muted">Nenhum produto cadastrado no cardápio.</div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna da Comanda / Carrinho -->
+            <div class="col-md-5">
+                <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+                    <h4 class="fw-bold text-dark mb-3">Comanda Atual</h4>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Tipo de Atendimento</label>
+                        <select id="tipoAtendimento" class="form-select form-select-sm">
+                            <option value="Balcão">Balcão</option>
+                            <option value="Mesa">Mesa</option>
+                            <option value="Delivery">Delivery</option>
+                        </select>
+                    </div>
+
+                    <div class="table-responsive mb-3" style="max-height: 250px; overflow-y: auto;">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-center">Qtd</th>
+                                    <th class="text-end">Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelaCarrinho">
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted small py-3">Carrinho vazio</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="border-top pt-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-muted">Total:</span>
+                            <h3 class="fw-bold text-success m-0" id="lblTotal">R$ 0,00</h3>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Forma de Pagamento</label>
+                            <select id="formaPagamento" class="form-select form-select-sm">
+                                <option value="Dinheiro">Dinheiro</option>
+                                <option value="Pix">Pix</option>
+                                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                                <option value="Cartão de Débito">Cartão de Débito</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-danger fw-bold py-2 rounded-pill shadow-sm" onclick="finalizarPedido()">
+                            🚀 Finalizar Pedido
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let carrinho = [];
+
+        function adicionarAoCarrinho(id, nome, preco) {
+            let itemExistente = carrinho.find(i => i.id === id);
+            if (itemExistente) {
+                itemExistente.qtd++;
+            } else {
+                carrinho.push({ id: id, nome: nome, preco: preco, qtd: 1 });
+            }
+            atualizarCarrinho();
+        }
+
+        function alterarQtd(id, delta) {
+            let item = carrinho.find(i => i.id === id);
+            if (item) {
+                item.qtd += delta;
+                if (item.qtd <= 0) {
+                    carrinho = carrinho.filter(i => i.id !== id);
+                }
+            }
+            atualizarCarrinho();
+        }
+
+        function atualizarCarrinho() {
+            let tbody = document.getElementById('tabelaCarrinho');
+            tbody.innerHTML = '';
+
+            if (carrinho.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted small py-3">Carrinho vazio</td></tr>';
+                document.getElementById('lblTotal').innerText = 'R$ 0,00';
+                return;
+            }
+
+            let total = 0;
+            carrinho.forEach(item => {
+                let subtotal = item.preco * item.qtd;
+                total += subtotal;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item.nome}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-secondary py-0 px-1" onclick="alterarQtd(${item.id}, -1)">-</button>
+                            <span class="mx-1">${item.qtd}</span>
+                            <button class="btn btn-sm btn-outline-secondary py-0 px-1" onclick="alterarQtd(${item.id}, 1)">+</button>
+                        </td>
+                        <td class="text-end">R$ ${subtotal.toFixed(2).replace('.', ',')}</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm text-danger p-0" onclick="alterarQtd(${item.id}, -${item.qtd})">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('lblTotal').innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
+        }
+
+        async function finalizarPedido() {
+            if (carrinho.length === 0) {
+                alert('Adicione itens ao carrinho antes de finalizar.');
+                return;
+            }
+
+            let tipoAtendimento = document.getElementById('tipoAtendimento').value;
+            let formaPagamento = document.getElementById('formaPagamento').value;
+            let totalGeral = carrinho.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
+
+            let dadosPedido = {
+                tipoAtendimento: tipoAtendimento,
+                formaPagamento: formaPagamento,
+                valorTotal: totalGeral,
+                itens: carrinho.map(i => ({ idProduto: i.id, quantidade: i.qtd, precoUnitario: i.preco }))
+            };
+
+            try {
+                let response = await fetch('/Caixa/SalvarPedido', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dadosPedido)
+                });
+
+                let resultado = await response.json();
+                if (resultado.sucesso) {
+                    alert('Pedido finalizado com sucesso!');
+                    carrinho = [];
+                    atualizarCarrinho();
+                    window.location.href = '/Home/Index';
+                } else {
+                    alert('Erro ao salvar pedido: ' + resultado.mensagem);
+                }
+            } catch (ex) {
+                alert('Erro de comunicação com o servidor.');
+            }
+        }
+    </script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

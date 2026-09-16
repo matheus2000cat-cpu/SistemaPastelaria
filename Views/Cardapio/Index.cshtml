@@ -1,0 +1,70 @@
+@model IEnumerable<SistemaPastelaria.Models.Produto>
+
+@{
+    ViewData["Title"] = "Cardápio - Pastelaria";
+    int nivelAcesso = ViewBag.NivelAcesso ?? 1;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm mb-4">
+        <div>
+            <h3 class="text-danger fw-bold m-0">📋 Cardápio da Pastelaria</h3>
+            <small class="text-muted">Produtos cadastrados e disponíveis no sistema</small>
+        </div>
+        <div class="d-flex gap-2">
+            @if (nivelAcesso >= 2)
+            {
+                <a href="/Cardapio/Cadastrar" class="btn btn-danger btn-sm fw-bold">＋ Cadastrar Novo Produto</a>
+            }
+            <a href="/Home/Index" class="btn btn-outline-secondary btn-sm">Voltar ao Painel</a>
+        </div>
+    </div>
+
+    @if (TempData["Erro"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Erro"]</div>
+    }
+
+    <div class="row">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var produto in Model)
+            {
+                <div class="col-md-4 mb-3">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <h5 class="fw-bold text-dark mb-1">@produto.Nome</h5>
+                                    <span class="badge bg-light text-success border fs-6">R$ @produto.Preco.ToString("N2")</span>
+                                </div>
+                                <p class="text-muted small mt-2 mb-3">@produto.Categoria</p>
+                            </div>
+
+                            <!-- Área de Ações Restritas (Exclusão exclusiva para Nível 4) -->
+                            <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+                                <span class="badge bg-secondary" style="font-size: 10px;">ID: #@produto.IdProduto</span>
+
+                                @if (nivelAcesso >= 4)
+                                {
+                                    <form asp-action="Excluir" method="post" onsubmit="return confirm('Tem certeza que deseja excluir @produto.Nome do cardápio?');" class="m-0">
+                                        <input type="hidden" name="id" value="@produto.IdProduto" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 12px;">
+                                            🗑️ Excluir
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">Nenhum produto cadastrado no cardápio.</p>
+            </div>
+        }
+    </div>
+</div>

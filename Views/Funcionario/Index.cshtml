@@ -1,0 +1,77 @@
+@model IEnumerable<SistemaPastelaria.Models.Operario>
+@{
+    ViewData["Title"] = "Gerenciar Funcionários - Pastelaria";
+    int nivelAcesso = Context.Session.GetInt32("NivelAcesso") ?? 1;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm mb-4">
+        <div>
+            <h3 class="text-danger fw-bold m-0">👥 Equipe</h3>
+            <small class="text-muted">Gerenciamento de operadores e níveis de acesso</small>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/Funcionario/Cadastrar" class="btn btn-danger btn-sm fw-bold">＋ Novo Funcionário</a>
+            <a href="/Home/Index" class="btn btn-outline-secondary btn-sm">Voltar ao Painel</a>
+        </div>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success">@TempData["Sucesso"]</div>
+    }
+    @if (TempData["Erro"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Erro"]</div>
+    }
+
+    <div class="card border-0 shadow-sm rounded-4 bg-white">
+        <div class="card-body p-0 table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Nome</th>
+                        <th>Cargo</th>
+                        <th>Nível</th>
+                        <th>PIN</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var op in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold">@op.Nome</td>
+                                <td>@op.Cargo</td>
+                                <td><span class="badge bg-secondary">Nível @op.NivelAcesso</span></td>
+                                <td><code class="fs-6 text-dark">@op.Pin</code></td>
+                                <td>
+                                    @if (op.Ativo)
+                                    {
+                                        <span class="badge bg-success">Ativo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inativo</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a href="/Funcionario/Editar/@op.IdOperario" class="btn btn-sm btn-outline-primary py-0">✏️ Editar</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">Nenhum funcionário encontrado.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
