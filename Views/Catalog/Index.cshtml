@@ -1,0 +1,172 @@
+@model IReadOnlyList<Produto>
+@inject IConfiguration Configuration
+@{
+    var brandName = Configuration["Branding:Name"] ?? "Pastelaria da Casa";
+    ViewData["Title"] = "Cardápio";
+    var categorias = Model.Select(produto => produto.Categoria).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+}
+
+<section class="hero mb-5">
+    <div class="hero-copy">
+        <span class="hero-badge">Cardápio digital · Pedido direto com a equipe</span>
+        <h1>O sabor que deixa o dia mais gostoso.</h1>
+        <p>@brandName: pastéis preparados com carinho, do jeito que a gente gosta. Escolha seus sabores e receba em casa ou retire no balcão.</p>
+        <a class="btn btn-pastel btn-lg px-4" href="#cardapio">Explorar o cardápio <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="hero-art" aria-hidden="true"><img src="~/images/pastel.svg" alt="" /></div>
+</section>
+
+<div class="benefit-strip" aria-label="Vantagens">
+    <div class="benefit"><span class="benefit-icon" aria-hidden="true">✳</span> Preparado na hora</div>
+    <div class="benefit"><span class="benefit-icon" aria-hidden="true">⌖</span> Entrega ou retirada</div>
+    <div class="benefit"><span class="benefit-icon" aria-hidden="true">♡</span> Feito com carinho</div>
+</div>
+
+<section id="cardapio">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 menu-heading">
+        <div>
+            <span class="eyebrow">Feito para dar água na boca</span>
+            <h2 class="section-title mb-0">Nosso cardápio</h2>
+        </div>
+        <div class="menu-tools">
+            @if (Model.Count > 0)
+            {
+                <div class="search-box">
+                    <input id="product-search" class="form-control" type="search" placeholder="Buscar um sabor..." aria-label="Buscar no cardápio" />
+                </div>
+            }
+            <button class="btn btn-outline-dark position-relative" type="button" data-bs-toggle="modal" data-bs-target="#checkout-modal">
+                Meu pedido <span class="badge rounded-pill text-bg-danger ms-1" id="cart-count">0</span>
+            </button>
+        </div>
+    </div>
+
+    @if (ViewData.ModelState.ErrorCount > 0)
+    {
+        <div class="alert alert-danger" role="alert">
+            <div asp-validation-summary="All"></div>
+        </div>
+    }
+
+    @if (Model.Count == 0)
+    {
+        <div class="empty-state">
+            <img src="~/images/pastel.svg" alt="" />
+            <h3 class="section-title">Estamos preparando o cardápio</h3>
+            <p class="text-muted mb-0">Volte em breve para conferir nossos sabores.</p>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-wrap gap-2 mb-4" id="category-filters">
+            <button type="button" class="btn category-chip active" data-category="all">Todos</button>
+            @foreach (var categoria in categorias)
+            {
+                <button type="button" class="btn category-chip" data-category="@categoria">@categoria</button>
+            }
+        </div>
+        <div class="row g-4" id="product-list">
+            @foreach (var produto in Model)
+            {
+                <div class="col-sm-6 col-lg-4 product-item" data-category="@produto.Categoria" data-name="@produto.Nome @produto.Descricao">
+                    <article class="product-card">
+                        <div class="product-image">
+                            @if (!string.IsNullOrWhiteSpace(produto.ImagemUrl))
+                            {
+                                <img class="product-photo" src="@produto.ImagemUrl" alt="@produto.Nome" loading="lazy" data-fallback="@Url.Content("~/images/pastel.svg")" />
+                            }
+                            else
+                            {
+                                <img class="product-placeholder" src="~/images/pastel.svg" alt="" loading="lazy" />
+                            }
+                        </div>
+                        <div class="card-body">
+                            <span class="eyebrow">@produto.Categoria</span>
+                            <h3 class="product-name">@produto.Nome</h3>
+                            <p class="product-description">@(string.IsNullOrWhiteSpace(produto.Descricao) ? "Um clássico preparado na hora, com aquele sabor de casa." : produto.Descricao)</p>
+                            <div class="d-flex justify-content-between align-items-center gap-2">
+                                <span class="price">@produto.Preco.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</span>
+                                <button type="button" class="btn btn-pastel btn-sm px-3 add-to-cart"
+                                        data-id="@produto.IdProduto"
+                                        data-name="@produto.Nome"
+                                        data-price="@produto.Preco.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                                    Adicionar
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            }
+        </div>
+        <div class="empty-state d-none mt-4" id="no-search-results" role="status">
+            <p class="mb-0">Não encontramos esse sabor. Tente buscar por outro nome ou categoria.</p>
+        </div>
+    }
+</section>
+
+<div class="cart-sticky" id="cart-sticky">
+    <div><strong><span id="sticky-cart-count">0</span> itens no pedido</strong><small id="sticky-cart-total">R$ 0,00</small></div>
+    <button class="btn btn-pastel" type="button" data-bs-toggle="modal" data-bs-target="#checkout-modal">Finalizar pedido</button>
+</div>
+
+<div class="modal fade" id="checkout-modal" tabindex="-1" aria-labelledby="checkout-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4">
+            <div class="modal-header px-4 pt-4 border-0">
+                <div>
+                    <span class="eyebrow">Quase lá</span>
+                    <h2 class="modal-title section-title" id="checkout-title">Seu pedido</h2>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body px-4">
+                <div id="cart-empty" class="empty-state py-4">
+                    <img src="~/images/pastel.svg" alt="" />
+                    <p class="text-muted mb-0">Seu pedido ainda está vazio. Escolha um sabor para começar.</p>
+                </div>
+                <div id="cart-items"></div>
+                <div class="d-flex justify-content-between border-top pt-3 mt-3 fw-bold">
+                    <span>Total</span><span id="cart-total">R$ 0,00</span>
+                </div>
+                <form asp-controller="Catalog" asp-action="FinalizarPedido" method="post" id="checkout-form" class="mt-4">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ItensJson" id="itens-json" value="@Context.Request.Form["ItensJson"]" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="ClienteNome">Seu nome</label>
+                            <input class="form-control" id="ClienteNome" name="ClienteNome" maxlength="100" required value="@Context.Request.Form["ClienteNome"]" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="ClienteTelefone">Telefone</label>
+                            <input class="form-control" id="ClienteTelefone" name="ClienteTelefone" type="tel" maxlength="30" required placeholder="(00) 00000-0000" value="@Context.Request.Form["ClienteTelefone"]" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="TipoAtendimento">Como prefere receber?</label>
+                            <select class="form-select" id="TipoAtendimento" name="TipoAtendimento" required>
+                                <option value="">Selecione</option>
+                                <option value="Retirada" selected="@(Context.Request.Form["TipoAtendimento"] == "Retirada")">Retirada no balcão</option>
+                                <option value="Entrega" selected="@(Context.Request.Form["TipoAtendimento"] == "Entrega")">Entrega</option>
+                            </select>
+                        </div>
+                        <div class="col-12 d-none" id="address-field">
+                            <label class="form-label" for="EnderecoEntrega">Endereço de entrega</label>
+                            <textarea class="form-control" id="EnderecoEntrega" name="EnderecoEntrega" rows="2" maxlength="300" placeholder="Rua, número, bairro e complemento">@Context.Request.Form["EnderecoEntrega"]</textarea>
+                        </div>
+                    </div>
+                    <p class="small text-muted mt-3 mb-3">Pagamento na loja ou na entrega. A equipe confirma seu pedido pelo telefone informado.</p>
+                    <button class="btn btn-pastel btn-lg w-100" type="submit" id="submit-order">Confirmar pedido</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/catalog.js" asp-append-version="true"></script>
+    @if (ViewData.ModelState.ErrorCount > 0)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", () => bootstrap.Modal.getOrCreateInstance(document.getElementById("checkout-modal")).show());
+        </script>
+    }
+}

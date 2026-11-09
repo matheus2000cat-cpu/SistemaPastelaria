@@ -1,7 +1,10 @@
-@model IEnumerable<SistemaPastelaria.Models.Operario>
+@model SistemaPastelaria.Models.LoginViewModel
+@inject IConfiguration Configuration
 @{
-    ViewData["Title"] = "Login - Pastelaria";
-    Layout = null; // Tela limpa, sem barra de navegação
+    var brandName = Configuration["Branding:Name"] ?? "Pastelaria da Casa";
+    var brandTagline = Configuration["Branding:Tagline"] ?? "Sabor de casa, feito na hora.";
+    ViewData["Title"] = "Acesso da equipe";
+    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -9,60 +12,63 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
+    <meta name="theme-color" content="#a83b25" />
+    <title>Acesso da equipe - @brandName</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <style>
-        body { background-color: #f8f9fa; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .login-card { max-width: 450px; width: 100%; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 30px; background: white; }
-        .letter-spacing-lg { letter-spacing: 10px; }
-    </style>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body>
-    <div class="login-card text-center">
-        <h1 style="font-size: 3rem; margin-bottom: 0;">🥟</h1>
-        <h3 class="text-danger fw-bold">Pastelaria</h3>
-        <p class="text-muted small mb-4">Selecione seu nome e digite o PIN</p>
+<body class="login-page">
+    <main class="login-card">
+        <div class="login-brand">
+            <span class="brand-mark" aria-hidden="true">P</span>
+            <span class="login-brand-copy"><strong>@brandName</strong><small>@brandTagline</small></span>
+        </div>
+        <h1>Acesso da equipe</h1>
+        <p class="intro">Entre para acompanhar pedidos e cuidar do cardápio.</p>
 
-        @if (ViewBag.Erro != null)
+        @if (ViewData.ModelState.ErrorCount > 0)
         {
-            <div class="alert alert-danger p-2 small">@ViewBag.Erro</div>
-        }
-        @if (TempData["Erro"] != null)
-        {
-            <div class="alert alert-danger p-2 small">@TempData["Erro"]</div>
-        }
-
-        <!-- CAIXA DE DEBUG (Soro da Verdade) -->
-        @if (ViewBag.RawJson != null)
-        {
-            <div class="alert alert-warning p-2 small text-start shadow-inner" style="word-break: break-all; max-height: 150px; overflow-y: auto;">
-                <strong>🔍 DEBUG DO BANCO:</strong><br/>
-                @ViewBag.RawJson
+            <div class="alert alert-danger" role="alert">
+                <div asp-validation-summary="All"></div>
             </div>
         }
 
-        <form asp-controller="Auth" asp-action="Login" method="post">
-            <div class="mb-3 text-start">
-                <label class="form-label small fw-bold text-dark">Funcionário</label>
-                <select name="idOperario" class="form-select bg-light" required>
-                    <option value="">Selecione seu nome...</option>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var operario in Model)
+        @if (Model.Funcionarios.Count == 0)
+        {
+            <div class="alert alert-warning" role="status">
+                Nenhum funcionário ativo foi encontrado. Peça ao responsável pelo sistema para verificar o cadastro da equipe.
+            </div>
+        }
+        else
+        {
+            <form asp-action="Login" method="post">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label for="idOperario" class="form-label fw-semibold">Funcionário</label>
+                    <select asp-for="IdOperario" id="idOperario" class="form-select" required>
+                        <option value="">Selecione seu nome</option>
+                        @foreach (var op in Model.Funcionarios)
                         {
-                            <option value="@operario.IdOperario">@operario.Nome</option>
+                            <option value="@op.IdOperario">@op.Nome (@op.Cargo)</option>
                         }
-                    }
-                </select>
-            </div>
+                    </select>
+                    <span asp-validation-for="IdOperario" class="field-validation-error"></span>
+                </div>
 
-            <div class="mb-4 text-start">
-                <label class="form-label small fw-bold text-dark">PIN de Acesso</label>
-                <input type="password" name="pin" class="form-control bg-light text-center fs-4 letter-spacing-lg" placeholder="• • • •" required autocomplete="off" />
-            </div>
+                <div class="mb-4">
+                    <label for="senhaPin" class="form-label fw-semibold">PIN de acesso</label>
+                    <input asp-for="SenhaPin" id="senhaPin" type="password" inputmode="numeric" autocomplete="current-password"
+                           class="form-control pin-input" maxlength="4" pattern="[0-9]{4}" placeholder="••••" required />
+                    <span asp-validation-for="SenhaPin" class="field-validation-error"></span>
+                    <div class="form-text">Digite seu PIN de 4 números.</div>
+                </div>
 
-            <button type="submit" class="btn btn-danger w-100 fw-bold py-2">Entrar no Turno</button>
-        </form>
-    </div>
+                <button type="submit" class="btn btn-pastel btn-lg w-100">Entrar no painel <span aria-hidden="true">→</span></button>
+            </form>
+        }
+
+        <a class="d-block mt-4 text-center small text-decoration-none text-secondary" asp-controller="Catalog" asp-action="Index">Voltar ao cardápio</a>
+        <img class="staff-illustration" src="~/images/pastel.svg" alt="" />
+    </main>
 </body>
 </html>

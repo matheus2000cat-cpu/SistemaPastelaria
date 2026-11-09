@@ -1,0 +1,32 @@
+@model Pedido
+@{
+    ViewData["Title"] = "Pedido recebido";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <section class="panel-card p-4 p-md-5 text-center">
+            <div class="display-4 mb-3">🎉</div>
+            <span class="eyebrow">Pedido enviado</span>
+            <h1 class="section-title mt-2">Obrigado, @Model.ClienteNome!</h1>
+            <p class="text-muted">Recebemos seu pedido <strong>#@Model.IdPedido</strong>. A equipe vai confirmar pelo telefone informado.</p>
+            <div class="text-start bg-light rounded-3 p-3 my-4">
+                @foreach (var item in Model.Itens)
+                {
+                    <div class="d-flex justify-content-between gap-3 py-1">
+                        <span>@item.Quantidade × @item.NomeProduto</span>
+                        <strong>@item.Subtotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</strong>
+                    </div>
+                }
+                <hr />
+                <div class="d-flex justify-content-between"><span>Total</span><strong>@Model.ValorTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</strong></div>
+            </div>
+            <p><strong>@(Model.TipoAtendimento == "Delivery" ? "Entrega" : "Retirada no balcão")</strong></p>
+            @if (Model.TipoAtendimento == "Delivery")
+            {
+                <p class="text-muted">@Model.EnderecoEntrega</p>
+            }
+            <a class="btn btn-pastel mt-2" asp-controller="Catalog" asp-action="Index">Voltar ao cardápio</a>
+        </section>
+    </div>
+</div>

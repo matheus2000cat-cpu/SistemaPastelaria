@@ -1,45 +1,61 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@inject IConfiguration Configuration
+@{
+    var brandName = Configuration["Branding:Name"] ?? "Pastelaria da Casa";
+    var brandTagline = Configuration["Branding:Tagline"] ?? "Sabor de casa, feito na hora.";
+}
+<!DOCTYPE html>
+<html lang="pt-br">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SistemaPastelaria</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - @brandName</title>
+    <meta name="theme-color" content="#a83b25" />
+    <meta name="description" content="@brandTagline Cardápio online com pedidos para entrega ou retirada." />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SistemaPastelaria.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SistemaPastelaria</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-lg container">
+            <a class="navbar-brand" asp-controller="Catalog" asp-action="Index">
+                <span class="brand-mark" aria-hidden="true">P</span>
+                <span>@brandName <small>feito na hora</small></span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-nav" aria-controls="main-nav"
+                    aria-expanded="false" aria-label="Abrir menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="main-nav">
+                <div class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
+                    <a class="nav-link" asp-controller="Catalog" asp-action="Index">Cardápio</a>
+                    @if (Context.Session.GetInt32("IdOperario") is not null)
+                    {
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">Painel</a>
+                        <a class="nav-link" asp-controller="Admin" asp-action="Index">Gestão do cardápio</a>
+                        <form asp-controller="Auth" asp-action="Logout" method="post" class="m-0">
+                            @Html.AntiForgeryToken()
+                            <button class="btn btn-outline-dark btn-sm" type="submit">Sair</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a class="btn btn-outline-dark btn-sm" asp-controller="Auth" asp-action="Login">Área da equipe</a>
+                    }
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
+    <div class="container page-content">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - SistemaPastelaria - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="site-footer">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>© @DateTime.Now.Year @brandName</span>
+            <span>@brandTagline</span>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

@@ -16,55 +16,65 @@ namespace SistemaPastelaria.Controllers
         [HttpGet]
         public async Task<IActionResult> Login()
         {
-            HttpContext.Session.Clear(); 
-
-            try
-            {
-                var response = await _supabase.From<Operario>().Get();
-                
-                // Manda o texto bruto da API do Supabase pra tela pra gente ver o que tá vindo!
-                ViewBag.RawJson = response.Content;
-
-                var operarios = response.Models?.Where(o => o != null && !string.IsNullOrEmpty(o.Nome)).ToList() ?? new List<Operario>();
-
-                if (!operarios.Any())
-                {
-                    ViewBag.Erro = "O C# não encontrou operadores. Veja a caixa amarela abaixo para descobrir o que o banco devolveu.";
-                }
-
-                return View(operarios);
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Erro = "Erro fatal de conexão: " + ex.Message;
-                return View(new List<Operario>());
-            }
+            return View(await CriarLoginViewModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(int idOperario, string pin)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                var response = await _supabase.From<Operario>().Where(x => x.IdOperario == idOperario).Get();
-                var operario = response.Models.FirstOrDefault();
-
-                if (operario != null && operario.Pin == pin)
-                {
-                    HttpContext.Session.SetInt32("IdOperario", operario.IdOperario);
-                    HttpContext.Session.SetString("NomeOperario", operario.Nome);
-                    HttpContext.Session.SetInt32("NivelAcesso", operario.NivelAcesso);
-                    return RedirectToAction("Index", "Home");
-                }
-
-                TempData["Erro"] = "PIN incorreto.";
-                return RedirectToAction("Login");
+                model = await CriarLoginViewModel(model);
+                return View(model);
             }
-            catch (Exception ex)
+
+            var response = await _supabase.From<Operario>()
+                .Where(x => x.IdOperario == model.IdOperario && x.Ativo)
+                .Get();
+
+            var operario = response.Models.FirstOrDefault();
+
+            if (operario is null || !string.Equals(operario.Pin, model.SenhaPin, StringComparison.Ordinal))
             {
-                TempData["Erro"] = "Erro no login: " + ex.Message;
-                return RedirectToAction("Login");
+                ModelState.AddModelError(string.Empty, "Funcionário ou PIN inválido.");
+                model = await CriarLoginViewModel(model);
+                return View(model);
             }
+
+            HttpContext.Session.Clear();
+            HttpContext.Session.SetInt32("IdOperario", operario.IdOperario);
+            HttpContext.Session.SetString("NomeOperario", operario.Nome);
+            HttpContext.Session.SetInt32("NivelAcesso", operario.NivelAcesso);
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login");
+        }
+
+        private async Task<LoginViewModel> CriarLoginViewModel(LoginViewModel? model = null)
+        {
+            var response = await _supabase.From<Operario>()
+                .Where(operario => operario.Ativo)
+                .Get();
+
+            return new LoginViewModel
+            {
+                Funcionarios = response.Models
+                    .Select(operario => new FuncionarioOpcaoViewModel
+                    {
+                        IdOperario = operario.IdOperario,
+                        Nome = operario.Nome,
+                        Cargo = operario.Cargo
+                    }).ToList(),
+                IdOperario = model?.IdOperario ?? 0
+            };
         }
     }
 }
