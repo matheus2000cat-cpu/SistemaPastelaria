@@ -16,7 +16,7 @@ namespace SistemaPastelaria.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            if (HttpContext.Session.GetInt32("IdOperario") == null)
+            if (!PodeAcessarCozinha())
             {
                 return RedirectToAction("Login", "Auth");
             }
@@ -40,7 +40,7 @@ namespace SistemaPastelaria.Controllers
         [HttpPost]
         public async Task<IActionResult> AtualizarStatus([FromBody] AtualizarStatusDto dto)
         {
-            if (HttpContext.Session.GetInt32("IdOperario") == null)
+            if (!PodeAcessarCozinha())
             {
                 return Json(new { sucesso = false, mensagem = "Sessão expirada." });
             }
@@ -73,6 +73,10 @@ namespace SistemaPastelaria.Controllers
                 return Json(new { sucesso = false, mensagem = "Erro ao atualizar status: " + ex.Message });
             }
         }
+
+        private bool PodeAcessarCozinha() =>
+            HttpContext.Session.GetInt32("IdOperario") is not null &&
+            HttpContext.Session.GetInt32("NivelAcesso") >= 2;
     }
 
     public class AtualizarStatusDto

@@ -72,7 +72,14 @@ namespace SistemaPastelaria.Controllers
         public async Task<IActionResult> RegistrarMovimentacao(string tipo, decimal valor, string observacao)
         {
             int? operarioId = HttpContext.Session.GetInt32("IdOperario");
+            int? nivel = HttpContext.Session.GetInt32("NivelAcesso");
             if (operarioId == null) return RedirectToAction("Login", "Auth");
+            if (nivel < 3) return RedirectToAction("Index", "Home");
+            if (tipo is not ("Sangria" or "Suprimento") || valor <= 0)
+            {
+                TempData["Erro"] = "Informe um tipo e valor válidos para a movimentação.";
+                return RedirectToAction(nameof(Index));
+            }
 
             try
             {
