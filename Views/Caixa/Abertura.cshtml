@@ -9,7 +9,7 @@
         <h1 class="section-title mt-2">Abra o caixa para começar</h1>
         <p class="text-muted">Informe o valor disponível para troco. Depois disso, o operador poderá registrar as comandas.</p>
 
-        <form asp-action="Abrir" method="post" class="mt-4">
+        <form asp-action="Abrir" method="post" class="mt-4" id="abrir-caixa-form">
             @Html.AntiForgeryToken()
             <label class="form-label fw-semibold" for="valorInicial">Fundo de caixa</label>
             <div class="input-group input-group-lg mb-2">
@@ -22,3 +22,33 @@
         <a class="d-block text-center mt-4 text-secondary text-decoration-none" asp-controller="Home" asp-action="Index">Voltar ao painel</a>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        document.getElementById("abrir-caixa-form").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const button = form.querySelector("button[type='submit']");
+            button.disabled = true;
+            button.textContent = "Abrindo caixa...";
+
+            try {
+                const response = await fetch(form.action, {
+                    method: "POST",
+                    body: new FormData(form),
+                    credentials: "same-origin"
+                });
+
+                if (!response.ok) {
+                    throw new Error("Não foi possível abrir o caixa.");
+                }
+
+                window.location.href = "/Caixa/Index";
+            } catch (error) {
+                button.disabled = false;
+                button.textContent = "Abrir caixa e ir para o PDV";
+                alert(error.message);
+            }
+        });
+    </script>
+}
