@@ -16,7 +16,7 @@ namespace SistemaPastelaria.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            if (HttpContext.Session.GetInt32("NivelAcesso") < 4)
+            if (!AdministradorAutenticado())
                 return RedirectToAction("Index", "Home");
 
             var response = await _supabase.From<Operario>().Get();
@@ -26,7 +26,7 @@ namespace SistemaPastelaria.Controllers
         [HttpGet]
         public IActionResult Cadastrar()
         {
-            if (HttpContext.Session.GetInt32("NivelAcesso") < 4)
+            if (!AdministradorAutenticado())
                 return RedirectToAction("Index", "Home");
 
             return View(new Operario());
@@ -35,7 +35,7 @@ namespace SistemaPastelaria.Controllers
         [HttpPost]
         public async Task<IActionResult> Cadastrar(Operario operario)
         {
-            if (HttpContext.Session.GetInt32("NivelAcesso") < 4)
+            if (!AdministradorAutenticado())
                 return RedirectToAction("Index", "Home");
 
             try
@@ -54,7 +54,7 @@ namespace SistemaPastelaria.Controllers
         [HttpGet]
         public async Task<IActionResult> Editar(int id)
         {
-            if (HttpContext.Session.GetInt32("NivelAcesso") < 4)
+            if (!AdministradorAutenticado())
                 return RedirectToAction("Index", "Home");
 
             var response = await _supabase.From<Operario>().Where(x => x.IdOperario == id).Get();
@@ -68,7 +68,7 @@ namespace SistemaPastelaria.Controllers
         [HttpPost]
         public async Task<IActionResult> Editar(Operario operario)
         {
-            if (HttpContext.Session.GetInt32("NivelAcesso") < 4)
+            if (!AdministradorAutenticado())
                 return RedirectToAction("Index", "Home");
 
             try
@@ -83,5 +83,9 @@ namespace SistemaPastelaria.Controllers
                 return View(operario);
             }
         }
+
+        private bool AdministradorAutenticado() =>
+            HttpContext.Session.GetInt32("IdOperario") is not null &&
+            HttpContext.Session.GetInt32("NivelAcesso") is >= 4;
     }
 }
