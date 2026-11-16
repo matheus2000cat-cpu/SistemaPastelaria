@@ -69,7 +69,7 @@ namespace SistemaPastelaria.Controllers
             return View();
         }
 
-        [HttpPost]
+        [HttpPost("/Caixa/Abrir")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Abrir(decimal valorInicial)
         {
@@ -102,7 +102,7 @@ namespace SistemaPastelaria.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost]
+        [HttpPost("/Caixa/Fechar")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Fechar(decimal valorInformado, string? observacao)
         {
