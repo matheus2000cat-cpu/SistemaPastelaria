@@ -4,6 +4,7 @@
     var brandName = Configuration["Branding:Name"] ?? "Pastelaria da Casa";
     ViewData["Title"] = "Cardápio";
     var categorias = Model.Select(produto => produto.Categoria).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    var formData = Context.Request.HasFormContentType ? Context.Request.Form : null;
 }
 
 <section class="hero mb-5">
@@ -130,27 +131,27 @@
                 </div>
                 <form asp-controller="Catalog" asp-action="FinalizarPedido" method="post" id="checkout-form" class="mt-4">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="ItensJson" id="itens-json" value="@Context.Request.Form["ItensJson"]" />
+                    <input type="hidden" name="ItensJson" id="itens-json" value="@formData?["ItensJson"]" />
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label" for="ClienteNome">Seu nome</label>
-                            <input class="form-control" id="ClienteNome" name="ClienteNome" maxlength="100" required value="@Context.Request.Form["ClienteNome"]" />
+                            <input class="form-control" id="ClienteNome" name="ClienteNome" maxlength="100" required value="@formData?["ClienteNome"]" />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="ClienteTelefone">Telefone</label>
-                            <input class="form-control" id="ClienteTelefone" name="ClienteTelefone" type="tel" maxlength="30" required placeholder="(00) 00000-0000" value="@Context.Request.Form["ClienteTelefone"]" />
+                            <input class="form-control" id="ClienteTelefone" name="ClienteTelefone" type="tel" maxlength="30" required placeholder="(00) 00000-0000" value="@formData?["ClienteTelefone"]" />
                         </div>
                         <div class="col-12">
                             <label class="form-label" for="TipoAtendimento">Como prefere receber?</label>
                             <select class="form-select" id="TipoAtendimento" name="TipoAtendimento" required>
                                 <option value="">Selecione</option>
-                                <option value="Retirada" selected="@(Context.Request.Form["TipoAtendimento"] == "Retirada")">Retirada no balcão</option>
-                                <option value="Entrega" selected="@(Context.Request.Form["TipoAtendimento"] == "Entrega")">Entrega</option>
+                                <option value="Retirada" selected="@(formData?["TipoAtendimento"].ToString() == "Retirada")">Retirada no balcão</option>
+                                <option value="Entrega" selected="@(formData?["TipoAtendimento"].ToString() == "Entrega")">Entrega</option>
                             </select>
                         </div>
                         <div class="col-12 d-none" id="address-field">
                             <label class="form-label" for="EnderecoEntrega">Endereço de entrega</label>
-                            <textarea class="form-control" id="EnderecoEntrega" name="EnderecoEntrega" rows="2" maxlength="300" placeholder="Rua, número, bairro e complemento">@Context.Request.Form["EnderecoEntrega"]</textarea>
+                            <textarea class="form-control" id="EnderecoEntrega" name="EnderecoEntrega" rows="2" maxlength="300" placeholder="Rua, número, bairro e complemento">@formData?["EnderecoEntrega"]</textarea>
                         </div>
                     </div>
                     <p class="small text-muted mt-3 mb-3">Pagamento na loja ou na entrega. A equipe confirma seu pedido pelo telefone informado.</p>
