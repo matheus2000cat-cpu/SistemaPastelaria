@@ -12,6 +12,9 @@ public class Pedido : BaseModel
     [Column("id_operario")]
     public int? IdOperario { get; set; }
 
+    [Column("id_caixa")]
+    public int? IdCaixa { get; set; }
+
     [Column("cliente_nome")]
     public string ClienteNome { get; set; } = string.Empty;
 

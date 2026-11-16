@@ -32,6 +32,8 @@
                     @if (Context.Session.GetInt32("IdOperario") is not null)
                     {
                         <a class="nav-link" asp-controller="Home" asp-action="Index">Painel</a>
+                        <a class="nav-link" asp-controller="Caixa" asp-action="Index">PDV</a>
+                        <a class="nav-link" asp-controller="Cozinha" asp-action="Index">Cozinha</a>
                         <a class="nav-link" asp-controller="Admin" asp-action="Index">Gestão do cardápio</a>
                         <form asp-controller="Auth" asp-action="Logout" method="post" class="m-0">
                             @Html.AntiForgeryToken()

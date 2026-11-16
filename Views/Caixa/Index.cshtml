@@ -4,6 +4,8 @@
     ViewData["Title"] = "Frente de Caixa (PDV) - Pastelaria";
     int nivelAcesso = Context.Session.GetInt32("NivelAcesso") ?? 1;
     string nomeOperario = Context.Session.GetString("NomeOperario") ?? "Operário";
+    var caixa = ViewBag.Caixa as SistemaPastelaria.Models.Caixa;
+    decimal vendasCaixa = ViewBag.VendasCaixa ?? 0m;
 }
 
 <!DOCTYPE html>
@@ -34,6 +36,10 @@
             <div>
                 <a href="/Home/Index" class="btn btn-outline-secondary btn-sm rounded-pill px-3">Voltar ao Painel</a>
             </div>
+        </div>
+        <div class="alert alert-success d-flex justify-content-between align-items-center rounded-4 shadow-sm">
+            <span><strong>Caixa aberto</strong> desde @caixa?.AberturaEm.ToString("dd/MM HH:mm") · Fundo: R$ @caixa?.ValorInicial.ToString("N2") · Vendas: R$ @vendasCaixa.ToString("N2")</span>
+            <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#fecharCaixaModal">Fechar caixa</button>
         </div>
 
         <div class="row">
@@ -72,12 +78,40 @@
                                         }
                                     </div>
                                 </div>
+
                             }
                         }
                         else
                         {
                             <div class="col-12 text-center py-4 text-muted">Nenhum produto cadastrado no cardápio.</div>
                         }
+                    </div>
+                </div>
+
+                <div class="modal fade" id="fecharCaixaModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content rounded-4">
+                            <form asp-action="Fechar" method="post">
+                                @Html.AntiForgeryToken()
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Fechamento de caixa</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <label class="form-label fw-semibold" for="valorInformado">Dinheiro contado no caixa</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">R$</span>
+                                        <input class="form-control" id="valorInformado" name="valorInformado" type="number" min="0" step="0.01" required />
+                                    </div>
+                                    <label class="form-label fw-semibold" for="observacao">Observação</label>
+                                    <textarea class="form-control" id="observacao" name="observacao" rows="2" maxlength="500"></textarea>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-pastel">Confirmar fechamento</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
