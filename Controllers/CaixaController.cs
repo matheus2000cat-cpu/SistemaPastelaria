@@ -69,9 +69,9 @@ namespace SistemaPastelaria.Controllers
             return View();
         }
 
-        [HttpPost("/Caixa/Abrir")]
+        [HttpPost("/Caixa/ConfirmarAbertura")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Abrir(decimal valorInicial)
+        public async Task<IActionResult> ConfirmarAbertura(decimal valorInicial)
         {
             var operarioId = HttpContext.Session.GetInt32("IdOperario");
             if (operarioId is null)
