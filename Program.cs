@@ -73,7 +73,7 @@ app.UseSession();
 
 app.UseAuthorization();
 
-app.MapPost("/Caixa/ConfirmarAbertura", async (HttpContext httpContext, Supabase.Client supabase) =>
+app.MapPost("/api/caixa/abrir", async (HttpContext httpContext, Supabase.Client supabase) =>
 {
     var operarioId = httpContext.Session.GetInt32("IdOperario");
     if (operarioId is null)
