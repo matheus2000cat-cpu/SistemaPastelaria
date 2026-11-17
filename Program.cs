@@ -73,6 +73,48 @@ app.UseSession();
 
 app.UseAuthorization();
 
+app.MapPost("/Caixa/ConfirmarAbertura", async (HttpContext httpContext, Supabase.Client supabase) =>
+{
+    var operarioId = httpContext.Session.GetInt32("IdOperario");
+    if (operarioId is null)
+    {
+        return Results.Redirect("/Auth/Login");
+    }
+
+    var form = await httpContext.Request.ReadFormAsync();
+    var valorTexto = form["valorInicial"].ToString();
+    if (!decimal.TryParse(valorTexto, System.Globalization.NumberStyles.Number,
+            System.Globalization.CultureInfo.InvariantCulture, out var valorInicial) &&
+        !decimal.TryParse(valorTexto, System.Globalization.NumberStyles.Number,
+            System.Globalization.CultureInfo.CurrentCulture, out valorInicial))
+    {
+        return Results.BadRequest("Informe um valor inicial válido.");
+    }
+
+    if (valorInicial < 0)
+    {
+        return Results.BadRequest("O valor inicial não pode ser negativo.");
+    }
+
+    var caixasAbertos = await supabase.From<SistemaPastelaria.Models.Caixa>()
+        .Where(caixa => caixa.Status == "Aberto")
+        .Get();
+    if (caixasAbertos.Models.Count > 0)
+    {
+        return Results.Redirect("/Caixa/Index");
+    }
+
+    await supabase.From<SistemaPastelaria.Models.Caixa>().Insert(new SistemaPastelaria.Models.Caixa
+    {
+        IdOperarioAbertura = operarioId.Value,
+        ValorInicial = valorInicial,
+        AberturaEm = DateTime.Now,
+        Status = "Aberto"
+    });
+
+    return Results.Redirect("/Caixa/Index");
+});
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Catalog}/{action=Index}/{id?}");
