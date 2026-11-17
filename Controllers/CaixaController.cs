@@ -69,7 +69,7 @@ namespace SistemaPastelaria.Controllers
             return View();
         }
 
-        [HttpPost("/Caixa/ConfirmarAbertura")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmarAbertura(decimal valorInicial)
         {
